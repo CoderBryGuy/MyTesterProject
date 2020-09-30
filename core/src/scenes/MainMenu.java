@@ -1,18 +1,19 @@
 package scenes;
 
+import Cloud.Cloud;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
-import com.badlogic.gdx.physics.box2d.World;
+import com.badlogic.gdx.physics.box2d.*;
 import com.mygdx.game.GameMain;
 import helpers.GameInfo;
 import player.Player;
 
-public class MainMenu implements Screen {
+public class MainMenu implements Screen, ContactListener {
 
     GameMain game;
 
@@ -37,6 +38,8 @@ public class MainMenu implements Screen {
         bg = new Texture("Game BG.png");
 
         player = new Player(world, "Player 1.png", GameInfo.WIDTH/2 , GameInfo.HEIGHT/2 + 250);
+
+        Cloud c = new Cloud(world);
     }
 
 
@@ -45,8 +48,23 @@ public class MainMenu implements Screen {
 
     }
 
+    void update(float dt){
+        if(Gdx.input.isKeyPressed(Input.Keys.LEFT)){
+                player.getBody().applyLinearImpulse(new Vector2(-0.1f, 0), player.getBody().getWorldCenter(), true);
+//            player.getBody().applyForce(new Vector2(-0.1f, 0), player.getBody().getWorldCenter(), true);
+        }else if(Gdx.input.isKeyPressed(Input.Keys.RIGHT)){
+            player.getBody().applyLinearImpulse(new Vector2(0.1f, 0), player.getBody().getWorldCenter(), true);
+//            player.getBody().applyForce(new Vector2(0.1f, 0), player.getBody().getWorldCenter(), true);
+        }else if(Gdx.input.isKeyPressed(Input.Keys.UP)){
+            player.getBody().applyLinearImpulse(new Vector2(0, 1), player.getBody().getWorldCenter(), true);
+//            player.getBody().applyForce(new Vector2(0.1f, 0), player.getBody().getWorldCenter(), true);
+        }
+    }
+
     @Override
     public void render(float delta) {
+        update(delta);
+
         player.updatePlayer();
 
         Gdx.gl.glClearColor(1,0,0,1);
@@ -59,6 +77,8 @@ public class MainMenu implements Screen {
 
         debugRenderer.render(world, box2DCamera.combined);
         world.step(Gdx.graphics.getDeltaTime(), 6, 2);
+
+        world.setContactListener(this);
     }
 
     @Override
@@ -86,6 +106,38 @@ public class MainMenu implements Screen {
     bg.dispose();
     player.getTexture().dispose();
 
+
+    }
+
+    @Override
+    public void beginContact(Contact contact) {
+        System.out.println("CONTACT");
+
+        Fixture firstBody, secondBody;
+
+        if(contact.getFixtureA().getUserData() == "Player"){
+            firstBody = contact.getFixtureA();
+            secondBody = contact.getFixtureB();
+        }else {
+            firstBody = contact.getFixtureB();
+            secondBody = contact.getFixtureA();
+        }
+
+        System.out.println("the name of the first body is " + firstBody.getUserData());
+    }
+
+    @Override
+    public void endContact(Contact contact) {
+
+    }
+
+    @Override
+    public void preSolve(Contact contact, Manifold oldManifold) {
+
+    }
+
+    @Override
+    public void postSolve(Contact contact, ContactImpulse impulse) {
 
     }
 } //main menu
